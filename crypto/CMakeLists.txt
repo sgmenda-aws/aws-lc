@@ -436,6 +436,7 @@ add_library(
   ex_data.c
   hpke/hpke.c
   hrss/hrss.c
+  hybrid_pq_kem/hybrid_pq_kem.c
   kem/kem.c
   kem/kem_methods.c
   kyber/kyber512r3_ref.c

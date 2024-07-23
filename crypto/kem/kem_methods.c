@@ -9,6 +9,7 @@
 
 #include "../kyber/kem_kyber.h"
 #include "../ml_kem/ml_kem.h"
+#include "../hybrid_pq_kem/hybrid_pq_kem.h"
 
 static int kyber512r3_keygen_deterministic(uint8_t *public_key,
                                            uint8_t *secret_key,
@@ -237,3 +238,27 @@ const KEM_METHOD kem_ml_kem_1024_ipd_method = {
     ml_kem_1024_ipd_encaps,
     ml_kem_1024_ipd_decaps,
 };
+
+const KEM_METHOD kem_hpqkem25519_method = {
+    hpqkem25519_keygen_deterministic,
+    hpqkem25519_keygen,
+    hpqkem25519_encaps_deterministic,
+    hpqkem25519_encaps,
+    hpqkem25519_decaps,
+};
+
+//const KEM_METHOD kem_hpqkem256_method = {
+//    hpqkem256_keygen_deterministic,
+//    hpqkem256_keygen,
+//    hpqkem256_encaps_deterministic,
+//    hpqkem256_encaps,
+//    hpqkem256_decaps,
+//};
+//
+//const KEM_METHOD kem_hpqkem384_method = {
+//    hpqkem384_keygen_deterministic,
+//    hpqkem384_keygen,
+//    hpqkem384_encaps_deterministic,
+//    hpqkem384_encaps,
+//    hpqkem384_decaps,
+//};
