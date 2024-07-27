@@ -437,7 +437,6 @@ add_library(
   ex_data.c
   hpke/hpke.c
   hrss/hrss.c
-  hybrid_pq_kem/hybrid_pq_kem.c
   kem/kem.c
   kem/kem_methods.c
   kyber/kyber512r3_ref.c
@@ -478,6 +477,7 @@ add_library(
   poly1305/poly1305_arm.c
   poly1305/poly1305_vec.c
   pool/pool.c
+  pqt/pqt_kem.c
   rand_extra/deterministic.c
   rand_extra/entropy_passive.c
   rand_extra/forkunsafe.c

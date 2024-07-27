@@ -843,9 +843,9 @@ static bool SpeedKEM(std::string selected) {
          SpeedSingleKEM("MLKEM512_IPD", NID_MLKEM512IPD, selected) &&
          SpeedSingleKEM("MLKEM768_IPD", NID_MLKEM768IPD, selected) &&
          SpeedSingleKEM("MLKEM1024_IPD", NID_MLKEM1024IPD, selected) &&
-         SpeedSingleKEM("HPQKEM25519", NID_HPQKEM25519, selected);
-//         SpeedSingleKEM("HPQKEM256", NID_HPQKEM256, selected) &&
-//         SpeedSingleKEM("HPQKEM384", NID_HPQKEM384, selected);
+         SpeedSingleKEM("PQT25519", NID_PQT25519, selected) &&
+         SpeedSingleKEM("PQT256", NID_PQT256, selected) &&
+         SpeedSingleKEM("PQT384", NID_PQT384, selected);
 }
 
 #if defined(ENABLE_DILITHIUM) && AWSLC_API_VERSION > 20

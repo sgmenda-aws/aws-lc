@@ -7,7 +7,7 @@
 #include <openssl/nid.h>
 
 #include "../fipsmodule/delocate.h"
-#include "../hybrid_pq_kem/hybrid_pq_kem.h"
+#include "../pqt/pqt_kem.h"
 #include "../internal.h"
 #include "../kyber/kem_kyber.h"
 #include "../ml_kem/ml_kem.h"
@@ -29,9 +29,9 @@ static const uint8_t kOIDKyber1024r3[]  = {0xff, 0xff, 0xff, 0xff};
 static const uint8_t kOIDMLKEM512IPD[]  = {0xff, 0xff, 0xff, 0xff};
 static const uint8_t kOIDMLKEM768IPD[]  = {0xff, 0xff, 0xff, 0xff};
 static const uint8_t kOIDMLKEM1024IPD[] = {0xff, 0xff, 0xff, 0xff};
-static const uint8_t kOIDHPQKEM25519[] = {0xff, 0xff, 0xff, 0xff};
-//static const uint8_t kOIDHPQKEM256[] = {0xff, 0xff, 0xff, 0xff};
-//static const uint8_t kOIDHPQKEM384[] = {0xff, 0xff, 0xff, 0xff};
+static const uint8_t kOIDPQT25519[]     = {0xff, 0xff, 0xff, 0xff};
+static const uint8_t kOIDPQT256[]       = {0xff, 0xff, 0xff, 0xff};
+static const uint8_t kOIDPQT384[]       = {0xff, 0xff, 0xff, 0xff};
 
 static const KEM built_in_kems[AWSLC_NUM_BUILT_IN_KEMS] = {
   {
@@ -114,45 +114,45 @@ static const KEM built_in_kems[AWSLC_NUM_BUILT_IN_KEMS] = {
     MLKEM1024IPD_ENCAPS_SEED_LEN,   // kem.encaps_seed_len
     &kem_ml_kem_1024_ipd_method,    // kem.method
   },
-    {
-        NID_HPQKEM25519,                  // kem.nid
-        kOIDHPQKEM25519,                  // kem.oid
-        sizeof(kOIDHPQKEM25519),          // kem.oid_len
-        "HPQKEM25519",                    // kem.comment
-        HPQKEM25519_PUBLIC_KEY_BYTES,     // kem.public_key_len
-        HPQKEM25519_SECRET_KEY_BYTES,     // kem.secret_key_len
-        HPQKEM25519_CIPHERTEXT_BYTES,     // kem.ciphertext_len
-        HPQKEM_SHARED_SECRET_LEN,         // kem.shared_secret_len
-        HPQKEM_KEYGEN_SEED_LEN,           // kem.keygen_seed_len
-        HPQKEM_ENCAPS_SEED_LEN,           // kem.encaps_seed_len
-        &kem_hpqkem25519_method,  // kem.method
-    },
-    //  {
-    //      NID_HPQKEM256,                  // kem.nid
-    //      kOIDHPQKEM256,                  // kem.oid
-    //      sizeof(kOIDHPQKEM256),          // kem.oid_len
-    //      "HPQKEM256",                    // kem.comment
-    //      HPQKEM256_PUBLIC_KEY_BYTES,     // kem.public_key_len
-    //      HPQKEM256_SECRET_KEY_BYTES,     // kem.secret_key_len
-    //      HPQKEM256_CIPHERTEXT_BYTES,     // kem.ciphertext_len
-    //      HPQKEM256_SHARED_SECRET_LEN,    // kem.shared_secret_len
-    //      HPQKEM256_KEYGEN_SEED_LEN,      // kem.keygen_seed_len
-    //      HPQKEM256_ENCAPS_SEED_LEN,      // kem.encaps_seed_len
-    //      &kem_hybrid_pq_kem_256_method,  // kem.method
-    //  },
-    //  {
-    //      NID_HPQKEM384,                  // kem.nid
-    //      kOIDHPQKEM384,                  // kem.oid
-    //      sizeof(kOIDHPQKEM384),          // kem.oid_len
-    //      "HPQKEM384",                    // kem.comment
-    //      HPQKEM384_PUBLIC_KEY_BYTES,     // kem.public_key_len
-    //      HPQKEM384_SECRET_KEY_BYTES,     // kem.secret_key_len
-    //      HPQKEM384_CIPHERTEXT_BYTES,     // kem.ciphertext_len
-    //      HPQKEM384_SHARED_SECRET_LEN,    // kem.shared_secret_len
-    //      HPQKEM384_KEYGEN_SEED_LEN,      // kem.keygen_seed_len
-    //      HPQKEM384_ENCAPS_SEED_LEN,      // kem.encaps_seed_len
-    //      &kem_hybrid_pq_kem_384_method,  // kem.method
-    //  },
+  {
+    NID_PQT25519,                   // kem.nid
+    kOIDPQT25519,                   // kem.oid
+    sizeof(kOIDPQT25519),           // kem.oid_len
+    "PQT25519",                     // kem.comment
+    PQT25519_PUBLIC_KEY_BYTES,      // kem.public_key_len
+    PQT25519_SECRET_KEY_BYTES,      // kem.secret_key_len
+    PQT25519_CIPHERTEXT_BYTES,      // kem.ciphertext_len
+    PQT25519_SHARED_SECRET_LEN,     // kem.shared_secret_len
+    PQT25519_KEYGEN_SEED_LEN,       // kem.keygen_seed_len
+    PQT25519_ENCAPS_SEED_LEN,       // kem.encaps_seed_len
+    &kem_pqt25519_method,           // kem.method
+  },
+  {
+    NID_PQT256,                     // kem.nid
+    kOIDPQT256,                     // kem.oid
+    sizeof(kOIDPQT256),             // kem.oid_len
+    "PQT256",                       // kem.comment
+    PQT256_PUBLIC_KEY_BYTES,        // kem.public_key_len
+    PQT256_SECRET_KEY_BYTES,        // kem.secret_key_len
+    PQT256_CIPHERTEXT_BYTES,        // kem.ciphertext_len
+    PQT256_SHARED_SECRET_LEN,       // kem.shared_secret_len
+    PQT256_KEYGEN_SEED_LEN,         // kem.keygen_seed_len
+    PQT256_ENCAPS_SEED_LEN,         // kem.encaps_seed_len
+    &kem_pqt256_method,             // kem.method
+  },
+  {
+    NID_PQT384,                     // kem.nid
+    kOIDPQT384,                     // kem.oid
+    sizeof(kOIDPQT384),             // kem.oid_len
+    "PQT384",                       // kem.comment
+    PQT384_PUBLIC_KEY_BYTES,        // kem.public_key_len
+    PQT384_SECRET_KEY_BYTES,        // kem.secret_key_len
+    PQT384_CIPHERTEXT_BYTES,        // kem.ciphertext_len
+    PQT384_SHARED_SECRET_LEN,       // kem.shared_secret_len
+    PQT384_KEYGEN_SEED_LEN,         // kem.keygen_seed_len
+    PQT384_ENCAPS_SEED_LEN,         // kem.encaps_seed_len
+    &kem_pqt384_method,             // kem.method
+  },
 };
 
 const KEM *KEM_find_kem_by_nid(int nid) {

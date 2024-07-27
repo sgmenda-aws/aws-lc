@@ -4340,14 +4340,14 @@ extern "C" {
 #define SN_MLKEM1024IPD "MLKEM1024IPD"
 #define NID_MLKEM1024IPD 987
 
-#define SN_HPQKEM25519 "HPQKEM25519"
-#define NID_HPQKEM25519 988
+#define SN_PQT25519 "PQT25519"
+#define NID_PQT25519 988
 
-#define SN_HPQKEM256 "HPQKEM256"
-#define NID_HPQKEM256 989
+#define SN_PQT256 "PQT256"
+#define NID_PQT256 989
 
-#define SN_HPQKEM384 "HPQKEM384"
-#define NID_HPQKEM384 990
+#define SN_PQT384 "PQT384"
+#define NID_PQT384 990
 
 #if defined(__cplusplus)
 } /* extern C */
