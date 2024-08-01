@@ -28,27 +28,24 @@
 // 1.1 ML-KEM-768 Wrappers
 // -----------------------
 
-static inline int pq768_keygen_deterministic(
-    uint8_t public_key[PQ768_PUBLIC_KEY_BYTES],
-    uint8_t secret_key[PQ768_SECRET_KEY_BYTES],
-    const uint8_t seed[PQ768_KEYGEN_SEED_LEN]) {
+static inline int pq768_keygen_deterministic(uint8_t *public_key,
+                                             uint8_t *secret_key,
+                                             const uint8_t *seed) {
   return (ml_kem_768_ipd_keypair_deterministic(public_key, secret_key, seed) ==
           0);
 }
 
-static inline int pq768_encaps_deterministic(
-    uint8_t ciphertext[PQ768_CIPHERTEXT_BYTES],
-    uint8_t shared_secret[PQ768_SHARED_SECRET_LEN],
-    const uint8_t public_key[PQ768_PUBLIC_KEY_BYTES],
-    const uint8_t seed[PQ768_ENCAPS_SEED_LEN]) {
+static inline int pq768_encaps_deterministic(uint8_t *ciphertext,
+                                             uint8_t *shared_secret,
+                                             const uint8_t *public_key,
+                                             const uint8_t *seed) {
   return (ml_kem_768_ipd_encapsulate_deterministic(ciphertext, shared_secret,
                                                    public_key, seed) == 0);
 }
 
-static inline int pq768_decaps(
-    uint8_t shared_secret[PQ768_SHARED_SECRET_LEN],
-    const uint8_t ciphertext[PQ768_CIPHERTEXT_BYTES],
-    const uint8_t secret_key[PQ768_SECRET_KEY_BYTES]) {
+static inline int pq768_decaps(uint8_t *shared_secret,
+                               const uint8_t *ciphertext,
+                               const uint8_t *secret_key) {
   return (ml_kem_768_ipd_decapsulate(shared_secret, ciphertext, secret_key) ==
           0);
 }
@@ -56,27 +53,24 @@ static inline int pq768_decaps(
 // 1.2 ML-KEM-1024 Wrappers
 // ------------------------
 
-static inline int pq1024_keygen_deterministic(
-    uint8_t public_key[PQ1024_PUBLIC_KEY_BYTES],
-    uint8_t secret_key[PQ1024_SECRET_KEY_BYTES],
-    const uint8_t seed[PQ1024_KEYGEN_SEED_LEN]) {
+static inline int pq1024_keygen_deterministic(uint8_t *public_key,
+                                              uint8_t *secret_key,
+                                              const uint8_t *seed) {
   return (ml_kem_1024_ipd_keypair_deterministic(public_key, secret_key, seed) ==
           0);
 }
 
-static inline int pq1024_encaps_deterministic(
-    uint8_t ciphertext[PQ1024_CIPHERTEXT_BYTES],
-    uint8_t shared_secret[PQ1024_SHARED_SECRET_LEN],
-    const uint8_t public_key[PQ1024_PUBLIC_KEY_BYTES],
-    const uint8_t seed[PQ1024_ENCAPS_SEED_LEN]) {
+static inline int pq1024_encaps_deterministic(uint8_t *ciphertext,
+                                              uint8_t *shared_secret,
+                                              const uint8_t *public_key,
+                                              const uint8_t *seed) {
   return (ml_kem_1024_ipd_encapsulate_deterministic(ciphertext, shared_secret,
                                                     public_key, seed) == 0);
 }
 
-static inline int pq1024_decaps(
-    uint8_t shared_secret[PQ1024_SHARED_SECRET_LEN],
-    const uint8_t ciphertext[PQ1024_CIPHERTEXT_BYTES],
-    const uint8_t secret_key[PQ1024_SECRET_KEY_BYTES]) {
+static inline int pq1024_decaps(uint8_t *shared_secret,
+                                const uint8_t *ciphertext,
+                                const uint8_t *secret_key) {
   return (ml_kem_1024_ipd_decapsulate(shared_secret, ciphertext, secret_key) ==
           0);
 }
@@ -102,29 +96,26 @@ static inline int pq1024_decaps(
 // 2.1 X25518 Wrappers
 // -------------------
 
-static inline int t25519_keygen_deterministic(
-    uint8_t public_key[T25519_PUBLIC_KEY_BYTES],
-    uint8_t secret_key[T25519_SECRET_KEY_BYTES],
-    const uint8_t seed[T25519_KEYGEN_SEED_LEN]) {
+static inline int t25519_keygen_deterministic(uint8_t *public_key,
+                                              uint8_t *secret_key,
+                                              const uint8_t *seed) {
   OPENSSL_memcpy(secret_key, seed, PQT_SYMBYTES);
   X25519_public_from_private(public_key, secret_key);
   return 1;
 }
 
-static inline int t25519_encaps_deterministic(
-    uint8_t ciphertext[T25519_CIPHERTEXT_BYTES],
-    uint8_t shared_secret[T25519_SHARED_SECRET_LEN],
-    const uint8_t public_key[T25519_PUBLIC_KEY_BYTES],
-    const uint8_t seed[T25519_ENCAPS_SEED_LEN]) {
+static inline int t25519_encaps_deterministic(uint8_t *ciphertext,
+                                              uint8_t *shared_secret,
+                                              const uint8_t *public_key,
+                                              const uint8_t *seed) {
   const uint8_t *ephemeral_secret_key = seed;
   X25519_public_from_private(ciphertext, ephemeral_secret_key);
   return X25519(shared_secret, ephemeral_secret_key, public_key);
 }
 
-static inline int t25519_decaps(
-    uint8_t shared_secret[T25519_SHARED_SECRET_LEN],
-    const uint8_t ciphertext[T25519_CIPHERTEXT_BYTES],
-    const uint8_t secret_key[T25519_SECRET_KEY_BYTES]) {
+static inline int t25519_decaps(uint8_t *shared_secret,
+                                const uint8_t *ciphertext,
+                                const uint8_t *secret_key) {
   const uint8_t *ephemeral_public_key = ciphertext;
   return X25519(shared_secret, secret_key, ephemeral_public_key);
 }
@@ -301,28 +292,25 @@ static inline int nistp_decaps(const EC_GROUP *group, uint8_t *shared_secret,
 // 2.3 P256 Wrappers
 // -----------------
 
-static inline int t256_keygen_deterministic(
-    uint8_t public_key[T256_PUBLIC_KEY_BYTES],
-    uint8_t secret_key[T256_SECRET_KEY_BYTES],
-    const uint8_t seed[T256_KEYGEN_SEED_LEN]) {
+static inline int t256_keygen_deterministic(uint8_t *public_key,
+                                            uint8_t *secret_key,
+                                            const uint8_t *seed) {
   return nistp_keygen_deterministic(
       EC_group_p256(), public_key, T256_PUBLIC_KEY_BYTES, secret_key,
       T256_SECRET_KEY_BYTES, seed, T256_KEYGEN_SEED_LEN);
 }
-static inline int t256_encaps_deterministic(
-    uint8_t ciphertext[T256_CIPHERTEXT_BYTES],
-    uint8_t shared_secret[T256_SHARED_SECRET_LEN],
-    const uint8_t public_key[T256_PUBLIC_KEY_BYTES],
-    const uint8_t seed[T256_ENCAPS_SEED_LEN]) {
+static inline int t256_encaps_deterministic(uint8_t *ciphertext,
+                                            uint8_t *shared_secret,
+                                            const uint8_t *public_key,
+                                            const uint8_t *seed) {
   return nistp_encaps_deterministic(
       EC_group_p256(), ciphertext, T256_CIPHERTEXT_BYTES, shared_secret,
       T256_SHARED_SECRET_LEN, public_key, T256_PUBLIC_KEY_BYTES, seed,
       T256_ENCAPS_SEED_LEN);
 }
 
-static inline int t256_decaps(uint8_t shared_secret[T256_SHARED_SECRET_LEN],
-                              const uint8_t ciphertext[T256_CIPHERTEXT_BYTES],
-                              const uint8_t secret_key[T256_SECRET_KEY_BYTES]) {
+static inline int t256_decaps(uint8_t *shared_secret, const uint8_t *ciphertext,
+                              const uint8_t *secret_key) {
   return nistp_decaps(EC_group_p256(), shared_secret, T256_SHARED_SECRET_LEN,
                       ciphertext, T256_CIPHERTEXT_BYTES, secret_key,
                       T256_SECRET_KEY_BYTES);
@@ -331,29 +319,26 @@ static inline int t256_decaps(uint8_t shared_secret[T256_SHARED_SECRET_LEN],
 // 2.4 P384 Wrappers
 // -----------------
 
-static inline int t384_keygen_deterministic(
-    uint8_t public_key[T384_PUBLIC_KEY_BYTES],
-    uint8_t secret_key[T384_SECRET_KEY_BYTES],
-    const uint8_t seed[T384_KEYGEN_SEED_LEN]) {
+static inline int t384_keygen_deterministic(uint8_t *public_key,
+                                            uint8_t *secret_key,
+                                            const uint8_t *seed) {
   return nistp_keygen_deterministic(
       EC_group_p384(), public_key, T384_PUBLIC_KEY_BYTES, secret_key,
       T384_SECRET_KEY_BYTES, seed, T384_KEYGEN_SEED_LEN);
 }
 
-static inline int t384_encaps_deterministic(
-    uint8_t ciphertext[T384_CIPHERTEXT_BYTES],
-    uint8_t shared_secret[T384_SHARED_SECRET_LEN],
-    const uint8_t public_key[T384_PUBLIC_KEY_BYTES],
-    const uint8_t seed[T384_ENCAPS_SEED_LEN]) {
+static inline int t384_encaps_deterministic(uint8_t *ciphertext,
+                                            uint8_t *shared_secret,
+                                            const uint8_t *public_key,
+                                            const uint8_t *seed) {
   return nistp_encaps_deterministic(
       EC_group_p384(), ciphertext, T384_CIPHERTEXT_BYTES, shared_secret,
       T384_SHARED_SECRET_LEN, public_key, T384_PUBLIC_KEY_BYTES, seed,
       T384_ENCAPS_SEED_LEN);
 }
 
-static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
-                              const uint8_t ciphertext[T384_CIPHERTEXT_BYTES],
-                              const uint8_t secret_key[T384_SECRET_KEY_BYTES]) {
+static inline int t384_decaps(uint8_t *shared_secret, const uint8_t *ciphertext,
+                              const uint8_t *secret_key) {
   return nistp_decaps(EC_group_p384(), shared_secret, T384_SHARED_SECRET_LEN,
                       ciphertext, T384_CIPHERTEXT_BYTES, secret_key,
                       T384_SECRET_KEY_BYTES);
@@ -366,11 +351,10 @@ static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
 // Returns 1 on success and 0 otherwise.
 #define GenerateCombiner(pqparam, tparam, evpdigest)                           \
   static inline int pqt##tparam##_combiner(                                    \
-      uint8_t shared_secret[PQT_SHARED_SECRET_LEN],                            \
+      uint8_t *shared_secret,                                                  \
       const uint8_t concat_shared_secrets[T##tparam##_SHARED_SECRET_LEN +      \
                                           PQ##pqparam##_SHARED_SECRET_LEN],    \
-      const uint8_t t_ciphertext[T##tparam##_CIPHERTEXT_BYTES],                \
-      const uint8_t t_public_key[T##tparam##_PUBLIC_KEY_BYTES]) {              \
+      const uint8_t *t_ciphertext, const uint8_t *t_public_key) {              \
     const EVP_MD *digest = evpdigest();                                        \
     uint8_t salt[T##tparam##_CIPHERTEXT_BYTES + T##tparam##_PUBLIC_KEY_BYTES]; \
     size_t salt_len =                                                          \
@@ -394,9 +378,7 @@ static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
 
 #define GenerateKeyGen(pqparam, tparam)                                      \
   int pqt##tparam##_keygen_deterministic(                                    \
-      uint8_t public_key[PQT##tparam##_PUBLIC_KEY_BYTES],                    \
-      uint8_t secret_key[PQT##tparam##_SECRET_KEY_BYTES],                    \
-      const uint8_t seed[PQT##tparam##_KEYGEN_SEED_LEN]) {                   \
+      uint8_t *public_key, uint8_t *secret_key, const uint8_t *seed) {       \
     uint8_t *pq_public_key = public_key;                                     \
     uint8_t *t_public_key = public_key + PQ##pqparam##_PUBLIC_KEY_BYTES;     \
     uint8_t *pq_secret_key = secret_key;                                     \
@@ -421,9 +403,7 @@ static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
                                                                              \
     return 1;                                                                \
   }                                                                          \
-  int pqt##tparam##_keygen(                                                  \
-      uint8_t public_key[PQT##tparam##_PUBLIC_KEY_BYTES],                    \
-      uint8_t secret_key[PQT##tparam##_SECRET_KEY_BYTES]) {                  \
+  int pqt##tparam##_keygen(uint8_t *public_key, uint8_t *secret_key) {       \
     uint8_t seed[PQT##tparam##_KEYGEN_SEED_LEN];                             \
     RAND_bytes(seed, PQT##tparam##_KEYGEN_SEED_LEN);                         \
     return pqt##tparam##_keygen_deterministic(public_key, secret_key, seed); \
@@ -434,10 +414,8 @@ static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
 
 #define GenerateEncaps(pqparam, tparam)                                        \
   int pqt##tparam##_encaps_deterministic(                                      \
-      uint8_t ciphertext[PQT##tparam##_CIPHERTEXT_BYTES],                      \
-      uint8_t shared_secret[PQT##tparam##_SHARED_SECRET_LEN],                  \
-      const uint8_t public_key[PQT##tparam##_PUBLIC_KEY_BYTES],                \
-      const uint8_t seed[PQT##tparam##_ENCAPS_SEED_LEN]) {                     \
+      uint8_t *ciphertext, uint8_t *shared_secret, const uint8_t *public_key,  \
+      const uint8_t *seed) {                                                   \
     uint8_t *pq_ciphertext = ciphertext;                                       \
     uint8_t *t_ciphertext = ciphertext + PQ##pqparam##_CIPHERTEXT_BYTES;       \
     const uint8_t *pq_public_key = public_key;                                 \
@@ -464,10 +442,8 @@ static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
     return pqt##tparam##_combiner(shared_secret, concat_shared_secrets,        \
                                   t_ciphertext, t_public_key);                 \
   }                                                                            \
-  int pqt##tparam##_encaps(                                                    \
-      uint8_t ciphertext[PQT##tparam##_CIPHERTEXT_BYTES],                      \
-      uint8_t shared_secret[PQT##tparam##_SHARED_SECRET_LEN],                  \
-      const uint8_t public_key[PQT##tparam##_PUBLIC_KEY_BYTES]) {              \
+  int pqt##tparam##_encaps(uint8_t *ciphertext, uint8_t *shared_secret,        \
+                           const uint8_t *public_key) {                        \
     uint8_t seed[PQT##tparam##_ENCAPS_SEED_LEN];                               \
     RAND_bytes(seed, PQT##tparam##_ENCAPS_SEED_LEN);                           \
     return pqt##tparam##_encaps_deterministic(ciphertext, shared_secret,       \
@@ -478,10 +454,8 @@ static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
 // ------------------------
 
 #define GenerateDecaps(pqparam, tparam)                                        \
-  int pqt##tparam##_decaps(                                                    \
-      uint8_t shared_secret[PQT##tparam##_SHARED_SECRET_LEN],                  \
-      const uint8_t ciphertext[PQT##tparam##_CIPHERTEXT_BYTES],                \
-      const uint8_t secret_key[PQT##tparam##_SECRET_KEY_BYTES]) {              \
+  int pqt##tparam##_decaps(uint8_t *shared_secret, const uint8_t *ciphertext,  \
+                           const uint8_t *secret_key) {                        \
     const uint8_t *pq_ciphertext = ciphertext;                                 \
     const uint8_t *t_ciphertext = ciphertext + PQ##pqparam##_CIPHERTEXT_BYTES; \
     const uint8_t *pq_secret_key = secret_key;                                 \
