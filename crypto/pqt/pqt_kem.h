@@ -43,7 +43,11 @@ extern "C" {
 // ---------------
 
 // FIXME(sanketh): see comment at nistp_internal_keygen_deterministic
-#define NISTP_KEYGEN_SEED 32
+
+// Size of the field + 128 bits for bias to be 2^(-128)
+#define P256_KEYGEN_SEED (32 + 16)
+// Size of the field + 128 bits for bias to be 2^(-128)
+#define P384_KEYGEN_SEED (48 + 16)
 
 // X25519 Constants, from Section 7.1 of RFC 9180
 #define T25519_PUBLIC_KEY_BYTES X25519_PUBLIC_VALUE_LEN
@@ -58,16 +62,16 @@ extern "C" {
 #define T256_SECRET_KEY_BYTES 32
 #define T256_CIPHERTEXT_BYTES T256_PUBLIC_KEY_BYTES
 #define T256_SHARED_SECRET_LEN 32
-#define T256_KEYGEN_SEED_LEN NISTP_KEYGEN_SEED
-#define T256_ENCAPS_SEED_LEN NISTP_KEYGEN_SEED
+#define T256_KEYGEN_SEED_LEN P256_KEYGEN_SEED
+#define T256_ENCAPS_SEED_LEN P256_KEYGEN_SEED
 
 // P384 Constants, from Section 7.1 of RFC 9180
 #define T384_PUBLIC_KEY_BYTES 97
 #define T384_SECRET_KEY_BYTES 48
 #define T384_CIPHERTEXT_BYTES T384_PUBLIC_KEY_BYTES
 #define T384_SHARED_SECRET_LEN 48
-#define T384_KEYGEN_SEED_LEN NISTP_KEYGEN_SEED
-#define T384_ENCAPS_SEED_LEN NISTP_KEYGEN_SEED
+#define T384_KEYGEN_SEED_LEN P384_KEYGEN_SEED
+#define T384_ENCAPS_SEED_LEN P384_KEYGEN_SEED
 
 // PQ/T KEM Constants
 // ----------------

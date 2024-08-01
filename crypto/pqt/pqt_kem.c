@@ -173,7 +173,7 @@ static inline int t25519_decaps(
 // pair.
 //
 // While this particular function is not FIPS-compliant, this general method
-// of using [group order] + [security parameter] bits of randomness to
+// of using [group order] + [>64 extra bits] bits of randomness to
 // deterministically generate a key is approved by FIPS, see Section A.2.1 of
 // FIPS 186-5 or Section 5.6.1.2.1 of NIST.SP.800-56Ar3.
 //
