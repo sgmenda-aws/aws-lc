@@ -7,11 +7,11 @@
 #include <openssl/nid.h>
 
 #include "../fipsmodule/delocate.h"
-#include "../pqt/pqt_kem.h"
 #include "../internal.h"
+#include "internal.h"
 #include "../kyber/kem_kyber.h"
 #include "../ml_kem/ml_kem.h"
-#include "internal.h"
+#include "../pqt/pqt_kem.h"
 
 
 // The KEM parameters listed below are taken from corresponding specifications.

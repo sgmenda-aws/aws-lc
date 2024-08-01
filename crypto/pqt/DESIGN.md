@@ -57,22 +57,22 @@ FIXME(sanketh): Use the same notation as FIPS 203: encapsulation key, decapsulat
 We rely on the following primitives:
 
 1. ML-KEM-768 and ML-KEM-1024 KEMs [FIPS 203 IPD]:
-1. `ML-KEM-*.KeyGenDeterministic(seed) -> (public_key, secret_key)`
-1. `ML-KEM-*.EncapsDeterministic(public_key, seed) -> (ciphertext, shared_secret)`
-1. `ML-KEM-*.Decaps(ciphertext, secret_key) -> shared_secret`
-1. X25519, P-256, and P-384 serialization functions [RFC 9180, Section 7.1]:
-1. `*.SerializePublicKey(*_public_key) -> bytes`
-1. `*.DeserializePublicKey(bytes) -> *_public_key`
-1. `*.SerializeSecretKey(*_secret_key) -> bytes`
-1. `*.DeserializeSecretKey(bytes) -> *_secret_key`
-1. HKDF-SHA256 and HKDF-SHA384 [RFC 5869](https://datatracker.ietf.org/doc/html/rfc5869):
-1. `HKDF-*(key, salt, info) -> bytes`
-1. X25519 ephemeral-ephemeral key exchange [RFC 7748]:
-1. `X25519.KeyGenDeterministic(seed) -> (public_key, secret_key)`
-1. `X25519.DH(public_key, secret_key) -> shared_secret`
-1. P-256 and P-384 ephemeral-ephemeral key exchange [NIST.SP.800-56Ar3]:
-1. `*.KeyGenDeterministic(seed) -> (public_key, secret_key)`
-1. `*.DH(public_key, secret_key) -> shared_secret`
+   1. `ML-KEM-*.KeyGenDeterministic(seed) -> (public_key, secret_key)`
+   2. `ML-KEM-*.EncapsDeterministic(public_key, seed) -> (ciphertext, shared_secret)`
+   3. `ML-KEM-*.Decaps(ciphertext, secret_key) -> shared_secret`
+2. X25519, P-256, and P-384 serialization functions [RFC 9180, Section 7.1]:
+   1. `*.SerializePublicKey(*_public_key) -> bytes`
+   2. `*.DeserializePublicKey(bytes) -> *_public_key`
+   3. `*.SerializeSecretKey(*_secret_key) -> bytes`
+   4. `*.DeserializeSecretKey(bytes) -> *_secret_key`
+3. HKDF-SHA256 and HKDF-SHA384 [RFC 5869](https://datatracker.ietf.org/doc/html/rfc5869):
+   1. `HKDF-*(key, salt, info) -> bytes`
+4. X25519 ephemeral-ephemeral key exchange [RFC 7748]:
+   1. `X25519.KeyGenDeterministic(seed) -> (public_key, secret_key)`
+   2. `X25519.DH(public_key, secret_key) -> shared_secret`
+5. P-256 and P-384 ephemeral-ephemeral key exchange [NIST.SP.800-56Ar3]:
+   1. `*.KeyGenDeterministic(seed) -> (public_key, secret_key)`
+   2. `*.DH(public_key, secret_key) -> shared_secret`
 
 ## Construction
 
@@ -287,12 +287,12 @@ Since the keys are honestly generated, and if we assume that the RNGs underlying
 
 This scheme is not MAL-BIND-K-PK. It is vulnerable to the attack in Section 2.2 of [Schmieg (2024)](https://eprint.iacr.org/2024/523).
 
-**MAL-BIND-K-PK attack sketch.**
+**MAL-BIND-K-PK attack sketch.** The DH part is constant and produces the same shared secret. The ML-KEM part will cause decaps failures on both sides since the ciphertexts are random bytes independent of the public keys. And since both secret keys have the same implicit rejection secret, they output the same shared secret.
 
 ```
-// DH part is constant
-(dh_pk, dh_sk) = DH.KeyGen()
-dh_ct = DH.Encaps(dh_pk)
+// T part is constant
+(t_pk, t_sk) = T.KeyGen()
+t_ct = T.Encaps(t_pk)
 
 // ML-KEM part is Schmieg's attack
 (dk0_PKE, ek0_PKE, H(ek0_PKE), z0) = ML-KEM.KeyGen()
@@ -303,15 +303,11 @@ dk0 = (dk0_PKE, ek0_PKE, H(ek0_PKE), z)
 dk1 = (dk1_PKE, ek1_PKE, H(ek1_PKE), z)
 
 return (
-   sk0 = dk0 || dh_sk
-   sk1 = dk1 || dh_sk
-   ct  = dh_ct || c
+   sk0 = dk0 || t_sk
+   sk1 = dk1 || t_sk
+   ct  = c || t_ct
 )
 ```
-
-The DH part will produce the same shared secret since they use the same inputs. 
-
-The ML-KEM part will cause decaps failures on both sides since the ciphertexts are random bytes independent of the public keys. And since both secret keys have the same implicit rejection secret, they output the same shared secret.
 
 ### Non-Goals
 

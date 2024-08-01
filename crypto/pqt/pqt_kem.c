@@ -20,41 +20,12 @@
 #define PQT384_LABEL "PQT384-v1"
 #define PQT_LABEL_LEN 9
 
-// 1. Combiner Implementation
-// --------------------------
-
-// Computes HKDF(key = t_ss || pq_ss, salt = t_ct || t_pk, fixed label)
-// Returns 1 on success and 0 otherwise.
-#define GenerateCombiner(pqparam, tparam, evpdigest)                           \
-  static inline int pqt##tparam##_combiner(                                    \
-      uint8_t shared_secret[PQT_SHARED_SECRET_LEN],                            \
-      const uint8_t concat_shared_secrets[T##tparam##_SHARED_SECRET_LEN +      \
-                                          PQ##pqparam##_SHARED_SECRET_LEN],    \
-      const uint8_t t_ciphertext[T##tparam##_CIPHERTEXT_BYTES],                \
-      const uint8_t t_public_key[T##tparam##_PUBLIC_KEY_BYTES]) {              \
-    const EVP_MD *digest = evpdigest();                                        \
-    uint8_t salt[T##tparam##_CIPHERTEXT_BYTES + T##tparam##_PUBLIC_KEY_BYTES]; \
-    size_t salt_len =                                                          \
-        T##tparam##_CIPHERTEXT_BYTES + T##tparam##_PUBLIC_KEY_BYTES;           \
-    OPENSSL_memcpy(salt, t_public_key, T##tparam##_PUBLIC_KEY_BYTES);          \
-    OPENSSL_memcpy(salt + T##tparam##_PUBLIC_KEY_BYTES, t_ciphertext,          \
-                   T##tparam##_CIPHERTEXT_BYTES);                              \
-                                                                               \
-    uint8_t info[PQT_LABEL_LEN] = PQT##tparam##_LABEL;                         \
-    size_t info_len = PQT_LABEL_LEN;                                           \
-                                                                               \
-    return HKDF(                                                               \
-        shared_secret, PQT_SHARED_SECRET_LEN, digest, concat_shared_secrets,   \
-        T##tparam##_SHARED_SECRET_LEN + PQ##pqparam##_SHARED_SECRET_LEN, salt, \
-        salt_len, info, info_len);                                             \
-  }
-
-// 2. PQ KEM Wrappers
+// 1. PQ KEM Wrappers
 // ------------------
 // All wrappers return one on success and zero on error.
 // ml_kem_* functions, imported from Kyber upstream, return 0 on success.
 
-// 2.1 ML-KEM-768 Wrappers
+// 1.1 ML-KEM-768 Wrappers
 // -----------------------
 
 static inline int pq768_keygen_deterministic(
@@ -82,7 +53,7 @@ static inline int pq768_decaps(
           0);
 }
 
-// 2.2 ML-KEM-1024 Wrappers
+// 1.2 ML-KEM-1024 Wrappers
 // ------------------------
 
 static inline int pq1024_keygen_deterministic(
@@ -110,7 +81,7 @@ static inline int pq1024_decaps(
           0);
 }
 
-// 3. T KEM Wrappers
+// 2. T KEM Wrappers
 // -----------------
 // All wrappers return one on success and zero on error.
 //
@@ -128,7 +99,7 @@ static inline int pq1024_decaps(
 // ASIDE: This insecurity is fine in the PQ/T KEM since they hash the T
 // public key and T ciphertext when deriving the shared secret.
 
-// 3.1 X25518 Wrappers
+// 2.1 X25518 Wrappers
 // -------------------
 
 static inline int t25519_keygen_deterministic(
@@ -158,7 +129,7 @@ static inline int t25519_decaps(
   return X25519(shared_secret, secret_key, ephemeral_public_key);
 }
 
-// 3.2 NIST-P Helper Functions
+// 2.2 NIST-P Helper Functions
 // ---------------------------
 //
 // NOTE: These helpers are not maximally performant.
@@ -327,7 +298,7 @@ static inline int nistp_decaps(const EC_GROUP *group, uint8_t *shared_secret,
   return 1;
 }
 
-// 3.3 P256 Wrappers
+// 2.3 P256 Wrappers
 // -----------------
 
 static inline int t256_keygen_deterministic(
@@ -357,7 +328,7 @@ static inline int t256_decaps(uint8_t shared_secret[T256_SHARED_SECRET_LEN],
                       T256_SECRET_KEY_BYTES);
 }
 
-// 3.4 P384 Wrappers
+// 2.4 P384 Wrappers
 // -----------------
 
 static inline int t384_keygen_deterministic(
@@ -387,6 +358,36 @@ static inline int t384_decaps(uint8_t shared_secret[T384_SHARED_SECRET_LEN],
                       ciphertext, T384_CIPHERTEXT_BYTES, secret_key,
                       T384_SECRET_KEY_BYTES);
 }
+
+// 3. Combiner Implementation
+// --------------------------
+
+// Computes HKDF(key = t_ss || pq_ss, salt = t_ct || t_pk, fixed label)
+// Returns 1 on success and 0 otherwise.
+#define GenerateCombiner(pqparam, tparam, evpdigest)                           \
+  static inline int pqt##tparam##_combiner(                                    \
+      uint8_t shared_secret[PQT_SHARED_SECRET_LEN],                            \
+      const uint8_t concat_shared_secrets[T##tparam##_SHARED_SECRET_LEN +      \
+                                          PQ##pqparam##_SHARED_SECRET_LEN],    \
+      const uint8_t t_ciphertext[T##tparam##_CIPHERTEXT_BYTES],                \
+      const uint8_t t_public_key[T##tparam##_PUBLIC_KEY_BYTES]) {              \
+    const EVP_MD *digest = evpdigest();                                        \
+    uint8_t salt[T##tparam##_CIPHERTEXT_BYTES + T##tparam##_PUBLIC_KEY_BYTES]; \
+    size_t salt_len =                                                          \
+        T##tparam##_CIPHERTEXT_BYTES + T##tparam##_PUBLIC_KEY_BYTES;           \
+    OPENSSL_memcpy(salt, t_public_key, T##tparam##_PUBLIC_KEY_BYTES);          \
+    OPENSSL_memcpy(salt + T##tparam##_PUBLIC_KEY_BYTES, t_ciphertext,          \
+                   T##tparam##_CIPHERTEXT_BYTES);                              \
+                                                                               \
+    uint8_t info[PQT_LABEL_LEN] = PQT##tparam##_LABEL;                         \
+    size_t info_len = PQT_LABEL_LEN;                                           \
+                                                                               \
+    return HKDF(                                                               \
+        shared_secret, PQT_SHARED_SECRET_LEN, digest, concat_shared_secrets,   \
+        T##tparam##_SHARED_SECRET_LEN + PQ##pqparam##_SHARED_SECRET_LEN, salt, \
+        salt_len, info, info_len);                                             \
+  }
+
 
 // 4. Keygen Implementation
 // ------------------------
