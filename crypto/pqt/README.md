@@ -1,6 +1,6 @@
 # PQ/T Hybrid KEMs
 
-The source code in this folder implements post-quantum/traditional hybrid KEMs as defined in [DESIGN.md](./DESIGN.md).
+The source code in this folder implements post-quantum/traditional hybrid KEMs as defined in [LINK TO DESIGN DOCUMENT].
 
 NOTE: THIS IS AN IMPLEMENTATION OF A DRAFT, NOT A FINAL STANDARD.
 
