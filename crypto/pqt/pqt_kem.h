@@ -42,8 +42,6 @@ extern "C" {
 // T KEM Constants
 // ---------------
 
-// FIXME(sanketh): see comment at nistp_internal_keygen_deterministic
-
 // Size of the field + 128 bits for bias to be 2^(-128)
 #define P256_KEYGEN_SEED (32 + 16)
 // Size of the field + 128 bits for bias to be 2^(-128)

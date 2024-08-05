@@ -129,17 +129,22 @@ static inline int t25519_decaps(uint8_t *shared_secret,
 // 2. They do lots of expensive |EC_KEY_check_fips| checks, which be avoided by
 //    careful refactoring.
 
-// Deterministically generate a key using |EC_KEY_derive_from_secret|, which is
-// not FIPS compliant. It uses HKDF-SHA256 with the provided seed to generate
-// [group order] + [128 extra bits] bits of randomness to generate a valid key
-// pair.
+// Deterministically generate an EC key.
 //
-// While this particular function is not FIPS-compliant, this general method
-// of using [group order] + [>64 extra bits] bits of randomness to
-// deterministically generate a key is approved by FIPS, see Section A.2.1 of
-// FIPS 186-5 or Section 5.6.1.2.1 of NIST.SP.800-56Ar3.
+// Currently, uses |EC_KEY_derive_from_secret| which is not FIPS compliant when
+// used with P-384. This is because it uses HKDF-SHA256 under the hood to
+// generate a sufficiently long seed, and HKDF-SHA256 has lower security
+// strength than P384. The HKDF call is also wasteful since we already provide a
+// sufficiently long seed, and it complicates the design (for interop.)
 //
-// FIXME(sanketh): Replace with a FIPS-compliant function.
+// The general method of using [group order] + [>64 extra bits] bits of
+// randomness to deterministically generate a key is described in Section A.2.1
+// of FIPS 186-5 and Section 5.6.1.2.1 of NIST.SP.800-56Ar3.
+//
+// FIXME(sanketh): Replace |EC_KEY_derive_from_secret| with a new function that
+//                 does not make the underlying HKDF call.
+//
+// Returns a newly allocated EC_KEY on success, and NULL otherwise.
 static inline EC_KEY *nistp_internal_keygen_deterministic(const EC_GROUP *group,
                                                           const uint8_t *seed,
                                                           size_t seed_len) {
