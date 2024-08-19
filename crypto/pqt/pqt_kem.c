@@ -18,8 +18,10 @@
 // Max length of [pq shared secret] + [t shared secret]
 #define PQT_MAX_CONCAT_SHARED_SECRET_BYTES \
   (MLKEM1024IPD_SHARED_SECRET_LEN + T384_SHARED_SECRET_LEN)
-// Max length of [t ciphertext] + [t public key]
-#define PQT_MAX_SALT_BYTES (T384_CIPHERTEXT_BYTES + T384_PUBLIC_KEY_BYTES)
+// Max length of [pq ciphertext] + [t ciphertext] + [pq pubKey] + [t pubKey]
+#define PQT_MAX_SALT_BYTES                                 \
+  (MLKEM1024IPD_CIPHERTEXT_BYTES + T384_CIPHERTEXT_BYTES + \
+   MLKEM1024IPD_PUBLIC_KEY_BYTES + T384_PUBLIC_KEY_BYTES)
 
 // KDF Labels
 #define PQT_LABEL_LEN (9)
@@ -400,7 +402,7 @@ const KEM kemlike_t384 = {
 // --------------------------
 
 // Computes HKDF(key = combined_shared_secrets,
-//               salt = t_public_key || t_ciphertext,
+//               salt = pq_pubKey || t_pubKey || pq_ciphertext || t_ciphertext,
 //               label)
 // using |digest|, and outputs 32 bytes to |shared_secret|.
 // Returns 1 on success and 0 otherwise.
@@ -408,12 +410,20 @@ static int pqt_combiner(const EVP_MD *digest, const uint8_t *label,
                         uint8_t *shared_secret,
                         const uint8_t *concat_shared_secrets,
                         size_t concat_shared_secrets_len,
+                        const uint8_t *pq_public_key, size_t pq_public_key_len,
                         const uint8_t *t_public_key, size_t t_public_key_len,
+                        const uint8_t *pq_ciphertext, size_t pq_ciphertext_len,
                         const uint8_t *t_ciphertext, size_t t_ciphertext_len) {
   uint8_t salt[PQT_MAX_SALT_BYTES] = {0};
-  size_t salt_len = t_ciphertext_len + t_public_key_len;
-  OPENSSL_memcpy(salt, t_public_key, t_public_key_len);
-  OPENSSL_memcpy(salt + t_public_key_len, t_ciphertext, t_ciphertext_len);
+  size_t salt_len = pq_ciphertext_len + t_ciphertext_len + pq_public_key_len +
+                    t_public_key_len;
+  OPENSSL_memcpy(salt, pq_public_key, pq_public_key_len);
+  OPENSSL_memcpy(salt + pq_public_key_len, t_public_key, t_public_key_len);
+  OPENSSL_memcpy(salt + pq_public_key_len + t_public_key_len, pq_ciphertext,
+                 pq_ciphertext_len);
+  OPENSSL_memcpy(
+      salt + pq_public_key_len + t_public_key_len + pq_ciphertext_len,
+      t_ciphertext, t_ciphertext_len);
   return HKDF(shared_secret, PQT_SHARED_SECRET_LEN, digest,
               concat_shared_secrets, concat_shared_secrets_len, salt, salt_len,
               label, PQT_LABEL_LEN);
@@ -455,8 +465,9 @@ static int pqt_encaps_deterministic(const KEM *pq, const KEM *t,
     goto end;
   }
   ret = pqt_combiner(digest, label, shared_secret, concat_ss,
-                     pq->shared_secret_len + t->shared_secret_len,
-                     public_key + pq->public_key_len, t->public_key_len,
+                     pq->shared_secret_len + t->shared_secret_len, public_key,
+                     pq->public_key_len, public_key + pq->public_key_len,
+                     t->public_key_len, ciphertext, pq->ciphertext_len,
                      ciphertext + pq->ciphertext_len, t->ciphertext_len);
 end:
   OPENSSL_cleanse(concat_ss, PQT_MAX_CONCAT_SHARED_SECRET_BYTES);
@@ -465,6 +476,22 @@ end:
 
 // 5. Decaps Implementation
 // ------------------------
+// Secret Key Surgery
+// These stunts are performed by trained professionals, do not try this at home.
+// FIXME: This should ideally be a part of the KEM interface.
+
+// ML-KEM secret key has the public key after the inner secret key.
+#define MLKEM768IPD_INNER_SECRET_KEY_BYTES (384 * 3)
+#define MLKEM1024IPD_INNER_SECRET_KEY_BYTES (384 * 4)
+static const uint8_t *mlkem_public_from_private(const KEM *pq,
+                                                const uint8_t *secret_key) {
+  if (pq->nid == NID_MLKEM768IPD) {
+    return (secret_key + MLKEM768IPD_INNER_SECRET_KEY_BYTES);
+  } else if (pq->nid == NID_MLKEM1024IPD) {
+    return (secret_key + MLKEM1024IPD_INNER_SECRET_KEY_BYTES);
+  }
+  return NULL;
+}
 
 static int pqt_decaps(const KEM *pq, const KEM *t, const EVP_MD *digest,
                       const uint8_t *label, uint8_t *shared_secret,
@@ -480,10 +507,13 @@ static int pqt_decaps(const KEM *pq, const KEM *t, const EVP_MD *digest,
   // Recover [t public key] from the end of secret key.
   const uint8_t *t_public_key =
       secret_key + pq->secret_key_len + t->secret_key_len;
+  // Recover [pq public key] from the pq secret key.
+  const uint8_t *pq_public_key = mlkem_public_from_private(pq, secret_key);
   ret = pqt_combiner(digest, label, shared_secret, concat_ss,
-                     pq->shared_secret_len + t->shared_secret_len, t_public_key,
-                     t->public_key_len, ciphertext + pq->ciphertext_len,
-                     t->ciphertext_len);
+                     pq->shared_secret_len + t->shared_secret_len,
+                     pq_public_key, pq->public_key_len, t_public_key,
+                     t->public_key_len, ciphertext, pq->ciphertext_len,
+                     ciphertext + pq->ciphertext_len, t->ciphertext_len);
 end:
   OPENSSL_cleanse(concat_ss, PQT_MAX_CONCAT_SHARED_SECRET_BYTES);
   return ret;
