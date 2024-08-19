@@ -401,32 +401,34 @@ const KEM kemlike_t384 = {
 // 2. Combiner Implementation
 // --------------------------
 
-// Computes HKDF(key = combined_shared_secrets,
-//               salt = pq_pubKey || t_pubKey || pq_ciphertext || t_ciphertext,
-//               label)
+// Computes SHAKE(concat_ss || pq_pk || t_pk || pq_ct || t_ct || label)
 // using |digest|, and outputs 32 bytes to |shared_secret|.
 // Returns 1 on success and 0 otherwise.
-static int pqt_combiner(const EVP_MD *digest, const uint8_t *label,
-                        uint8_t *shared_secret,
-                        const uint8_t *concat_shared_secrets,
-                        size_t concat_shared_secrets_len,
-                        const uint8_t *pq_public_key, size_t pq_public_key_len,
-                        const uint8_t *t_public_key, size_t t_public_key_len,
-                        const uint8_t *pq_ciphertext, size_t pq_ciphertext_len,
-                        const uint8_t *t_ciphertext, size_t t_ciphertext_len) {
-  uint8_t salt[PQT_MAX_SALT_BYTES] = {0};
-  size_t salt_len = pq_ciphertext_len + t_ciphertext_len + pq_public_key_len +
-                    t_public_key_len;
-  OPENSSL_memcpy(salt, pq_public_key, pq_public_key_len);
-  OPENSSL_memcpy(salt + pq_public_key_len, t_public_key, t_public_key_len);
-  OPENSSL_memcpy(salt + pq_public_key_len + t_public_key_len, pq_ciphertext,
-                 pq_ciphertext_len);
-  OPENSSL_memcpy(
-      salt + pq_public_key_len + t_public_key_len + pq_ciphertext_len,
-      t_ciphertext, t_ciphertext_len);
-  return HKDF(shared_secret, PQT_SHARED_SECRET_LEN, digest,
-              concat_shared_secrets, concat_shared_secrets_len, salt, salt_len,
-              label, PQT_LABEL_LEN);
+  static int pqt_combiner(const EVP_MD *digest, const uint8_t *label,
+                          uint8_t *shared_secret,
+                          const uint8_t *concat_shared_secrets,
+                          size_t concat_shared_secrets_len,
+                          const uint8_t *pq_public_key, size_t pq_public_key_len,
+                          const uint8_t *t_public_key, size_t t_public_key_len,
+                          const uint8_t *pq_ciphertext, size_t pq_ciphertext_len,
+                          const uint8_t *t_ciphertext, size_t t_ciphertext_len) {
+  uint8_t in[PQT_MAX_CONCAT_SHARED_SECRET_BYTES + PQT_MAX_SALT_BYTES +
+             PQT_LABEL_LEN] = {0};
+  size_t in_len = 0;
+  OPENSSL_memcpy(in, concat_shared_secrets, concat_shared_secrets_len);
+  in_len += concat_shared_secrets_len;
+  OPENSSL_memcpy(in + in_len, pq_public_key, pq_public_key_len);
+  in_len += pq_public_key_len;
+  OPENSSL_memcpy(in + in_len, t_public_key, t_public_key_len);
+  in_len += t_public_key_len;
+  OPENSSL_memcpy(in + in_len, pq_ciphertext, pq_ciphertext_len);
+  in_len += pq_ciphertext_len;
+  OPENSSL_memcpy(in + in_len, t_ciphertext, t_ciphertext_len);
+  in_len += t_ciphertext_len;
+  OPENSSL_memcpy(in + in_len, label, PQT_LABEL_LEN);
+  in_len += PQT_LABEL_LEN;
+  unsigned int out_size = PQT_SHARED_SECRET_LEN;
+  return EVP_Digest(in, in_len, shared_secret, &out_size, digest, NULL);
 }
 
 // 3. Keygen Implementation

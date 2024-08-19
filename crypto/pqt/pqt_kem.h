@@ -17,9 +17,9 @@ extern "C" {
 
 // Digest Constants
 // ----------------
-#define PQT25519_DIGEST EVP_sha256
-#define PQT256_DIGEST EVP_sha256
-#define PQT384_DIGEST EVP_sha384
+#define PQT25519_DIGEST EVP_shake128
+#define PQT256_DIGEST EVP_shake128
+#define PQT384_DIGEST EVP_shake256
 
 // T KEM Constants
 // ---------------
